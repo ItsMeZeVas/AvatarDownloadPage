@@ -5,22 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tu avatar · Día de Ingeniería en Multimedia</title>
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#f6e7d0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #eef1f8;
-    --surface: #ffffff;
-    --ink: #1b1f3b;
-    --muted: #596079;
-    --line: #d5daea;
-    --signal: #3d4dff;
-    --signal-press: #2a38d6;
-    --signal-soft: #e3e6ff;
-    --warn: #8a5a00;
-    --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
-    --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    /* Paleta tomada del póster Multifest */
+    --cream: #f6e7d0;
+    --cream-deep: #ecd8b8;
+    --forest: #0c3732;
+    --forest-soft: #14504a;
+    --coral: #f29a8a;
+    --coral-press: #e8836f;
+    --red: #d9503f;
+    --mustard: #f2b544;
+    --sage: #e8e3a8;
+    --muted: #4b5f58;
+    --warn: #a3321f;
+    --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+    --body: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --shadow: 5px 5px 0 var(--forest);
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -28,108 +33,175 @@
     margin: 0;
     min-height: 100vh;
     min-height: 100dvh;
-    background: var(--paper);
-    color: var(--ink);
+    background: var(--cream);
+    color: var(--forest);
     font-family: var(--body);
     font-size: 1rem;
     line-height: 1.5;
-    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
+    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
     display: flex;
     justify-content: center;
   }
   main { width: 100%; max-width: 26rem; display: flex; flex-direction: column; gap: 1.25rem; }
 
-  .event { margin: 0; font-size: .875rem; color: var(--muted); font-weight: 500; }
+  /* Cabecera: etiqueta del evento + franjas del póster */
+  .top { display: grid; gap: .6rem; }
+  .event {
+    margin: 0;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .8125rem; font-weight: 800;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--forest);
+  }
+  .event svg { width: 1.1rem; height: 1.1rem; flex: none; }
+  .stripes { display: grid; gap: 3px; }
+  .stripes i { display: block; height: 5px; }
+  .stripes i:nth-child(1) { background: var(--forest-soft); }
+  .stripes i:nth-child(2) { background: var(--coral); }
+  .stripes i:nth-child(3) { background: var(--forest-soft); }
+  .stripes i:nth-child(4) { background: var(--red); }
 
-  /* Escenario del avatar: lo único con peso visual de la página */
+  /* Escenario del avatar */
   .stage {
     position: relative;
-    aspect-ratio: 4 / 5;
-    border-radius: 1.75rem;
-    background:
-      radial-gradient(120% 70% at 50% 100%, var(--signal-soft) 0%, rgba(227,230,255,0) 70%),
-      var(--surface);
-    border: 1px solid var(--line);
-    display: grid;
-    place-items: center;
-    overflow: hidden;
+    background: var(--forest);
+    border: 3px solid var(--forest);
+    border-radius: .5rem;
+    padding: .75rem;
+    box-shadow: var(--shadow);
+  }
+  .stage::before, .stage::after {
+    content: ""; position: absolute; pointer-events: none; z-index: 2;
+  }
+  /* Estrella de 8 puntas (coral) y estrella con borde (mostaza) */
+  .stage::before {
+    width: 2.75rem; height: 2.75rem; top: -1.25rem; left: -1rem;
+    background: var(--coral);
+    clip-path: polygon(50% 0, 58% 36%, 100% 50%, 58% 64%, 50% 100%, 42% 64%, 0 50%, 42% 36%);
+  }
+  .stage::after {
+    width: 2.25rem; height: 2.25rem; top: -.9rem; right: -.6rem;
+    background: var(--mustard);
+    clip-path: polygon(50% 0, 62% 35%, 98% 38%, 69% 59%, 79% 95%, 50% 74%, 21% 95%, 31% 59%, 2% 38%, 38% 35%);
   }
   .stage img {
-    max-width: 88%;
-    max-height: 92%;
-    object-fit: contain;
     display: none;
+    width: 100%;
+    height: auto;          /* respeta la proporción real: nunca recorta */
+    border-radius: .25rem;
+    background: var(--cream);
   }
   .stage.ready img { display: block; }
-  .placeholder { display: grid; justify-items: center; gap: 1rem; padding: 1.5rem; text-align: center; }
+  .placeholder {
+    min-height: 19rem;
+    display: grid; align-content: center; justify-items: center; gap: 1rem;
+    padding: 1.5rem; text-align: center;
+    color: var(--cream);
+  }
   .stage.ready .placeholder { display: none; }
   .dots { display: flex; gap: .5rem; }
   .dots span {
-    width: .75rem; height: .75rem; border-radius: 50%;
-    background: var(--signal);
+    width: .8rem; height: .8rem; border-radius: 50%;
+    background: var(--coral);
     animation: pulse 1.2s ease-in-out infinite;
   }
-  .dots span:nth-child(2) { animation-delay: .15s; }
-  .dots span:nth-child(3) { animation-delay: .3s; }
+  .dots span:nth-child(2) { animation-delay: .15s; background: var(--mustard); }
+  .dots span:nth-child(3) { animation-delay: .3s; background: var(--sage); }
   @keyframes pulse { 0%, 80%, 100% { opacity: .25; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
-  .placeholder strong { font-family: var(--display); font-size: 1.375rem; font-weight: 700; line-height: 1.2; }
-  .placeholder p { margin: 0; color: var(--muted); max-width: 18rem; }
+  .placeholder strong {
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.75rem; line-height: 1.1; letter-spacing: .02em; text-transform: uppercase;
+  }
+  .placeholder p { margin: 0; color: var(--sage); max-width: 18rem; }
 
+  /* Título */
+  .heading { display: grid; gap: .4rem; }
   h1 {
     margin: 0;
     font-family: var(--display);
-    font-weight: 700;
-    font-size: clamp(2rem, 9vw, 2.75rem);
-    line-height: 1.05;
-    letter-spacing: -.02em;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: clamp(2.5rem, 13vw, 3.5rem);
+    line-height: .98;
+    letter-spacing: .01em;
+    color: var(--forest);
     overflow-wrap: anywhere;
   }
-  .lead { margin: .35rem 0 0; color: var(--muted); }
-
-  .actions { display: grid; gap: .75rem; }
-  .btn {
-    appearance: none;
-    border: 0;
-    border-radius: 1rem;
-    min-height: 3.5rem;
-    padding: .75rem 1.25rem;
-    font: 600 1.0625rem/1.2 var(--body);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: .6rem;
-    background: var(--signal);
-    color: #fff;
-    transition: background .15s ease, transform .1s ease;
+  .lead {
+    margin: 0;
+    display: inline-block; justify-self: start;
+    padding: .3rem .7rem;
+    background: var(--forest); color: var(--sage);
+    font-size: .9375rem; font-weight: 600;
+    border-radius: .25rem;
   }
-  .btn:hover { background: var(--signal-press); }
-  .btn:active { transform: scale(.98); }
-  .btn[disabled] { background: var(--line); color: var(--muted); cursor: not-allowed; transform: none; }
-  .btn.secondary { background: var(--surface); color: var(--ink); border: 1.5px solid var(--ink); }
-  .btn.secondary:hover { background: var(--signal-soft); }
-  .btn.secondary[disabled] { border-color: var(--line); background: transparent; }
-  .btn:focus-visible, audio:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-  .btn svg { width: 1.25rem; height: 1.25rem; flex: none; }
+  .lead:empty { display: none; }
 
+  /* Reproductor */
   .player {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 1.25rem;
-    padding: 1rem 1rem .75rem;
+    background: var(--cream);
+    border: 3px solid var(--forest);
+    border-radius: .5rem;
+    padding: 1rem 1rem .85rem;
+    box-shadow: var(--shadow);
     display: none;
   }
   .player.ready { display: block; }
-  .player label { display: block; font-weight: 600; margin-bottom: .5rem; }
-  audio { width: 100%; }
-  .bars { display: flex; align-items: flex-end; gap: 3px; height: 2rem; margin-bottom: .75rem; }
+  .player label {
+    display: block; margin-bottom: .6rem;
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.25rem; letter-spacing: .04em; text-transform: uppercase;
+  }
+  audio { width: 100%; height: 2.75rem; border-radius: 2rem; }
+  .bars { display: flex; align-items: flex-end; gap: 3px; height: 2.25rem; margin-bottom: .75rem; }
   .bars i {
-    flex: 1; border-radius: 2px; background: var(--signal);
-    height: 20%; opacity: .35;
+    flex: 1; border-radius: 2px; background: var(--forest);
+    height: 20%; opacity: .3;
     transition: height .2s ease, opacity .2s ease;
   }
+  .bars i:nth-child(3n+1) { background: var(--coral); }
+  .bars i:nth-child(5n) { background: var(--mustard); }
   .player.playing .bars i { opacity: 1; animation: bar 900ms ease-in-out infinite; }
   @keyframes bar { 0%, 100% { height: 20%; } 50% { height: 100%; } }
 
-  .status { margin: 0; font-size: .9375rem; color: var(--muted); min-height: 1.5rem; }
-  .status.warn { color: var(--warn); }
+  /* Botones */
+  .actions { display: grid; gap: .9rem; }
+  .btn {
+    appearance: none;
+    border: 3px solid var(--forest);
+    border-radius: .5rem;
+    min-height: 3.5rem;
+    padding: .75rem 1.25rem;
+    font: 800 1.0625rem/1.2 var(--body);
+    letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    background: var(--coral);
+    color: var(--forest);
+    box-shadow: var(--shadow);
+    transition: transform .1s ease, box-shadow .1s ease, background .15s ease;
+  }
+  .btn:hover { background: var(--coral-press); }
+  .btn:active { transform: translate(4px, 4px); box-shadow: 1px 1px 0 var(--forest); }
+  .btn.secondary { background: var(--mustard); }
+  .btn.secondary:hover { background: #e5a630; }
+  .btn[disabled] {
+    background: var(--cream-deep); color: var(--muted);
+    border-color: #b9a888; box-shadow: 5px 5px 0 #b9a888;
+    cursor: not-allowed;
+  }
+  .btn[disabled]:active { transform: none; box-shadow: 5px 5px 0 #b9a888; }
+  .btn:focus-visible, audio:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+  .btn svg { width: 1.3rem; height: 1.3rem; flex: none; }
+
+  .status { margin: 0; font-size: .9375rem; font-weight: 500; color: var(--muted); min-height: 1.5rem; }
+  .status.warn { color: var(--warn); font-weight: 700; }
+
+  .foot {
+    margin: .25rem 0 0; text-align: center;
+    font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted);
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .dots span, .player.playing .bars i { animation: none; }
@@ -141,10 +213,16 @@
 </head>
 <body>
 <main>
-  <p class="event">Día de Ingeniería en Multimedia</p>
+  <header class="top">
+    <p class="event">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f2b544" stroke="#0c3732" stroke-width="1.5" stroke-linejoin="round" d="M14 2 5 13h6l-1 9 9-11h-6z"/></svg>
+      Día de Ingeniería en Multimedia
+    </p>
+    <div class="stripes" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  </header>
 
   <div class="stage" id="stage">
-    <img id="avatarImg" alt="" width="640" height="800">
+    <img id="avatarImg" alt="">
     <div class="placeholder" id="placeholder">
       <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
       <strong id="phTitle">Estamos preparando tu avatar</strong>
@@ -152,7 +230,7 @@
     </div>
   </div>
 
-  <div>
+  <div class="heading">
     <h1 id="title">Tu avatar</h1>
     <p class="lead" id="lead"></p>
   </div>
@@ -165,16 +243,17 @@
 
   <div class="actions">
     <button class="btn" id="dlImage" type="button" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
       Descargar imagen
     </button>
     <button class="btn secondary" id="dlAudio" type="button" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
       Descargar audio
     </button>
   </div>
 
   <p class="status" id="status" role="status" aria-live="polite"></p>
+  <p class="foot">Multifest · Universidad Militar Nueva Granada</p>
 </main>
 
 <script>
