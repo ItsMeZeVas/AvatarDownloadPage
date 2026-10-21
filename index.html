@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tu avatar · Día de Ingeniería en Multimedia</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1f8;
+    --surface: #ffffff;
+    --ink: #1b1f3b;
+    --muted: #596079;
+    --line: #d5daea;
+    --signal: #3d4dff;
+    --signal-press: #2a38d6;
+    --signal-soft: #e3e6ff;
+    --warn: #8a5a00;
+    --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 26rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .event { margin: 0; font-size: .875rem; color: var(--muted); font-weight: 500; }
+
+  /* Escenario del avatar: lo único con peso visual de la página */
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    border-radius: 1.75rem;
+    background:
+      radial-gradient(120% 70% at 50% 100%, var(--signal-soft) 0%, rgba(227,230,255,0) 70%),
+      var(--surface);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .stage img {
+    max-width: 88%;
+    max-height: 92%;
+    object-fit: contain;
+    display: none;
+  }
+  .stage.ready img { display: block; }
+  .placeholder { display: grid; justify-items: center; gap: 1rem; padding: 1.5rem; text-align: center; }
+  .stage.ready .placeholder { display: none; }
+  .dots { display: flex; gap: .5rem; }
+  .dots span {
+    width: .75rem; height: .75rem; border-radius: 50%;
+    background: var(--signal);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: .15s; }
+  .dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes pulse { 0%, 80%, 100% { opacity: .25; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
+  .placeholder strong { font-family: var(--display); font-size: 1.375rem; font-weight: 700; line-height: 1.2; }
+  .placeholder p { margin: 0; color: var(--muted); max-width: 18rem; }
+
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2rem, 9vw, 2.75rem);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+  }
+  .lead { margin: .35rem 0 0; color: var(--muted); }
+
+  .actions { display: grid; gap: .75rem; }
+  .btn {
+    appearance: none;
+    border: 0;
+    border-radius: 1rem;
+    min-height: 3.5rem;
+    padding: .75rem 1.25rem;
+    font: 600 1.0625rem/1.2 var(--body);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    background: var(--signal);
+    color: #fff;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .btn:hover { background: var(--signal-press); }
+  .btn:active { transform: scale(.98); }
+  .btn[disabled] { background: var(--line); color: var(--muted); cursor: not-allowed; transform: none; }
+  .btn.secondary { background: var(--surface); color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn.secondary:hover { background: var(--signal-soft); }
+  .btn.secondary[disabled] { border-color: var(--line); background: transparent; }
+  .btn:focus-visible, audio:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .btn svg { width: 1.25rem; height: 1.25rem; flex: none; }
+
+  .player {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1.25rem;
+    padding: 1rem 1rem .75rem;
+    display: none;
+  }
+  .player.ready { display: block; }
+  .player label { display: block; font-weight: 600; margin-bottom: .5rem; }
+  audio { width: 100%; }
+  .bars { display: flex; align-items: flex-end; gap: 3px; height: 2rem; margin-bottom: .75rem; }
+  .bars i {
+    flex: 1; border-radius: 2px; background: var(--signal);
+    height: 20%; opacity: .35;
+    transition: height .2s ease, opacity .2s ease;
+  }
+  .player.playing .bars i { opacity: 1; animation: bar 900ms ease-in-out infinite; }
+  @keyframes bar { 0%, 100% { height: 20%; } 50% { height: 100%; } }
+
+  .status { margin: 0; font-size: .9375rem; color: var(--muted); min-height: 1.5rem; }
+  .status.warn { color: var(--warn); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dots span, .player.playing .bars i { animation: none; }
+    .dots span { opacity: 1; }
+    .player.playing .bars i { height: 60%; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="event">Día de Ingeniería en Multimedia</p>
+
+  <div class="stage" id="stage">
+    <img id="avatarImg" alt="" width="640" height="800">
+    <div class="placeholder" id="placeholder">
+      <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <strong id="phTitle">Estamos preparando tu avatar</strong>
+      <p id="phText">Esta página se actualiza sola. No hace falta que escanees de nuevo.</p>
+    </div>
+  </div>
+
+  <div>
+    <h1 id="title">Tu avatar</h1>
+    <p class="lead" id="lead"></p>
+  </div>
+
+  <section class="player" id="player" aria-label="Sonido de tu avatar">
+    <label for="audio">Escucha tu sonido</label>
+    <div class="bars" aria-hidden="true"></div>
+    <audio id="audio" controls preload="none"></audio>
+  </section>
+
+  <div class="actions">
+    <button class="btn" id="dlImage" type="button" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
+      Descargar imagen
+    </button>
+    <button class="btn secondary" id="dlAudio" type="button" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15 7.5 10.5M4 20h16"/></svg>
+      Descargar audio
+    </button>
+  </div>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ===== CONFIGURACIÓN: ajustar a tu proyecto de Supabase ===== */
+  var CONFIG = {
+    // URL base del proyecto, sin barra final. Ej: "https://abcdxyz.supabase.co"
+    SUPABASE_URL: "https://ywnbijwhukywommjqdxw.supabase.co",
+    // Bucket PÚBLICO donde ya subes el .wav
+    BUCKET: "Leitmotivs",
+    // Ruta de cada archivo dentro del bucket. {id} se reemplaza por el guid del avatar.
+    IMAGE_PATH: "{id}.png",
+    AUDIO_PATH: "{id}.wav",
+    // Cada cuánto se revisa si los archivos ya existen (ms). Pasados 5 min se espacia.
+    POLL_FAST_MS: 4000,
+    POLL_SLOW_MS: 15000,
+    SLOW_AFTER_MS: 5 * 60 * 1000,
+    // Tras este tiempo sin archivos, se avisa que está tardando más de lo normal.
+    DELAY_NOTICE_MS: 3 * 60 * 1000
+  };
+  /* ============================================================ */
+
+  var $ = function (id) { return document.getElementById(id); };
+  var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  var params = new URLSearchParams(location.search);
+  var id = (params.get("id") || "").trim();
+  var name = (params.get("n") || "").trim().slice(0, 40);
+  // i=0: este avatar no tiene imagen (por ahora solo audio). No se espera ni se muestra.
+  var noImage = params.get("i") === "0";
+
+  var stage = $("stage"), img = $("avatarImg"), player = $("player"), audio = $("audio");
+  var btnImg = $("dlImage"), btnAud = $("dlAudio"), statusEl = $("status");
+  if (noImage) { stage.style.display = "none"; btnImg.style.display = "none"; }
+
+  // Barras decorativas del reproductor
+  var bars = document.querySelector(".bars");
+  for (var i = 0; i < 24; i++) {
+    var b = document.createElement("i");
+    b.style.animationDelay = ((i * 83) % 900) + "ms";
+    bars.appendChild(b);
+  }
+
+  function setStatus(text, warn) {
+    statusEl.textContent = text || "";
+    statusEl.classList.toggle("warn", !!warn);
+  }
+
+  function fileUrl(template) {
+    return CONFIG.SUPABASE_URL + "/storage/v1/object/public/" +
+      encodeURIComponent(CONFIG.BUCKET) + "/" + template.replace("{id}", id);
+  }
+  var imageUrl, audioUrl;
+
+  function fileSafe(s) {
+    return (s || "avatar").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "_").replace(/^_+|_+$/g, "") || "avatar";
+  }
+
+  // ---- Enlace inválido ----
+  if (!UUID_RE.test(id) || CONFIG.SUPABASE_URL.indexOf("TU-PROYECTO") !== -1) {
+    $("phTitle").textContent = UUID_RE.test(id) ? "Página sin configurar" : "Este enlace no es válido";
+    $("phText").textContent = UUID_RE.test(id)
+      ? "Falta indicar la URL de Supabase y el bucket en la configuración de la página."
+      : "Escanea de nuevo el código QR que aparece en la pantalla.";
+    document.querySelector(".dots").style.display = "none";
+    $("title").textContent = "";
+    return;
+  }
+
+  imageUrl = fileUrl(CONFIG.IMAGE_PATH);
+  audioUrl = fileUrl(CONFIG.AUDIO_PATH);
+  if (name) { $("title").textContent = name; document.title = name + " · Tu avatar"; }
+  $("lead").textContent = noImage ? "Estamos terminando de guardar tu sonido." : "Estamos terminando de guardar tu avatar.";
+
+  var imageReady = false, audioReady = false, startedAt = Date.now();
+
+  function exists(url) {
+    // HEAD sin caché: el archivo puede aparecer en cualquier momento.
+    return fetch(url, { method: "HEAD", cache: "no-store" })
+      .then(function (r) { return r.ok; })
+      .catch(function () { return false; });
+  }
+
+  function markImageReady() {
+    imageReady = true;
+    img.onload = function () { stage.classList.add("ready"); };
+    img.alt = name ? "Avatar de " + name : "Tu avatar";
+    img.src = imageUrl + "?v=" + Date.now();
+    btnImg.disabled = false;
+  }
+  function markAudioReady() {
+    audioReady = true;
+    audio.src = audioUrl;
+    player.classList.add("ready");
+    btnAud.disabled = false;
+  }
+  function refreshCopy() {
+    if ((noImage || imageReady) && audioReady) {
+      $("lead").textContent = noImage ? "Tu sonido está listo." : "Tu avatar y su sonido están listos.";
+      setStatus("");
+    } else if (imageReady || audioReady) {
+      $("lead").textContent = "Ya puedes descargar una parte. La otra llega en un momento.";
+    }
+  }
+
+  function tick() {
+    var elapsed = Date.now() - startedAt;
+    var jobs = [];
+    if (!noImage && !imageReady) jobs.push(exists(imageUrl).then(function (ok) { if (ok) markImageReady(); }));
+    if (!audioReady) jobs.push(exists(audioUrl).then(function (ok) { if (ok) markAudioReady(); }));
+    Promise.all(jobs).then(function () {
+      refreshCopy();
+      if ((noImage || imageReady) && audioReady) return;
+      if (elapsed > CONFIG.DELAY_NOTICE_MS) {
+        setStatus("Está tardando más de lo normal. Puedes dejar esta página abierta o volver a escanear en unos minutos.", true);
+      }
+      setTimeout(tick, elapsed > CONFIG.SLOW_AFTER_MS ? CONFIG.POLL_SLOW_MS : CONFIG.POLL_FAST_MS);
+    });
+  }
+  tick();
+
+  // ---- Reproductor ----
+  audio.addEventListener("play", function () { player.classList.add("playing"); });
+  audio.addEventListener("pause", function () { player.classList.remove("playing"); });
+  audio.addEventListener("ended", function () { player.classList.remove("playing"); });
+
+  // ---- Descargas ----
+  // El atributo "download" se ignora entre dominios distintos, así que se baja como blob.
+  function download(url, filename, button, label) {
+    button.disabled = true;
+    setStatus("Descargando…");
+    fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+      .then(function (blob) {
+        var a = document.createElement("a");
+        var objUrl = URL.createObjectURL(blob);
+        a.href = objUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(objUrl); }, 4000);
+        setStatus(label + " descargado. Revisa tu carpeta de descargas.");
+      })
+      .catch(function () {
+        // Plan B: abrir el archivo en otra pestaña para guardarlo desde ahí.
+        window.open(url, "_blank", "noopener");
+        setStatus("No se pudo descargar directo. Se abrió el archivo en otra pestaña: mantén presionado para guardarlo.", true);
+      })
+      .then(function () { button.disabled = false; });
+  }
+
+  var base = fileSafe(name);
+  btnImg.addEventListener("click", function () {
+    download(imageUrl, "avatar-" + base + ".png", btnImg, "La imagen");
+  });
+  btnAud.addEventListener("click", function () {
+    download(audioUrl, "sonido-" + base + ".wav", btnAud, "El audio");
+  });
+})();
+</script>
+</body>
+</html>
