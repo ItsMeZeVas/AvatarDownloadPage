@@ -274,7 +274,11 @@
     POLL_SLOW_MS: 15000,
     SLOW_AFTER_MS: 5 * 60 * 1000,
     // Tras este tiempo sin archivos, se avisa que está tardando más de lo normal.
-    DELAY_NOTICE_MS: 3 * 60 * 1000
+    DELAY_NOTICE_MS: 3 * 60 * 1000,
+    // Corrección de brillo (gamma) para las imágenes que se subieron oscuras.
+    // 1 = sin corrección. Más alto = más claro. Rango útil: 1.8 a 2.4.
+    // Para probar sin redesplegar, agrega &g=2.0 al enlace del QR.
+    GAMMA_IMAGEN: 2.2
   };
   /* ============================================================ */
 
@@ -286,6 +290,8 @@
   var name = (params.get("n") || "").trim().slice(0, 40);
   // i=0: este avatar no tiene imagen (por ahora solo audio). No se espera ni se muestra.
   var noImage = params.get("i") === "0";
+  var gamma = parseFloat(params.get("g"));
+  if (!(gamma >= 1 && gamma <= 3)) gamma = CONFIG.GAMMA_IMAGEN;
 
   var stage = $("stage"), img = $("avatarImg"), player = $("player"), audio = $("audio");
   var btnImg = $("dlImage"), btnAud = $("dlAudio"), statusEl = $("status");
@@ -340,12 +346,72 @@
       .catch(function () { return false; });
   }
 
-  function markImageReady() {
-    imageReady = true;
+  // ---- Corrección de gamma ----
+  // Imagen descargada -> canvas -> tabla de 256 valores -> PNG corregido (el alfa no se toca).
+  // El blob es del mismo origen que la página, así que el canvas no se "contamina" (sin problemas de CORS).
+  var correctedBlob = null;
+
+  function crearLUT(g) {
+    var lut = new Uint8ClampedArray(256);
+    for (var i = 0; i < 256; i++) lut[i] = Math.round(255 * Math.pow(i / 255, 1 / g));
+    return lut;
+  }
+
+  function cargarBitmap(blob) {
+    if (window.createImageBitmap) return createImageBitmap(blob);
+    return new Promise(function (resolve, reject) {
+      var u = URL.createObjectURL(blob), im = new Image();
+      im.onload = function () { URL.revokeObjectURL(u); resolve(im); };
+      im.onerror = function () { URL.revokeObjectURL(u); reject(new Error("decode")); };
+      im.src = u;
+    });
+  }
+
+  function corregirImagen(blob, g) {
+    if (g <= 1) return Promise.resolve(blob);
+    return cargarBitmap(blob).then(function (bmp) {
+      var w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight;
+      var canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      var ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(bmp, 0, 0);
+      var data = ctx.getImageData(0, 0, w, h);
+      var px = data.data, lut = crearLUT(g);
+      for (var i = 0; i < px.length; i += 4) {
+        px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]];
+      }
+      ctx.putImageData(data, 0, 0);
+      return new Promise(function (resolve, reject) {
+        canvas.toBlob(function (out) { out ? resolve(out) : reject(new Error("toBlob")); }, "image/png");
+      });
+    });
+  }
+
+  function mostrarImagen(src) {
     img.onload = function () { stage.classList.add("ready"); };
     img.alt = name ? "Avatar de " + name : "Tu avatar";
-    img.src = imageUrl + "?v=" + Date.now();
-    btnImg.disabled = false;
+    img.src = src;
+  }
+
+  function markImageReady() {
+    // La vista previa y la descarga usan la MISMA imagen corregida.
+    return fetch(imageUrl + "?v=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+      .then(function (blob) {
+        return corregirImagen(blob, gamma).catch(function () { return blob; }); // si falla la corrección, va la original
+      })
+      .then(function (blob) {
+        correctedBlob = blob;
+        mostrarImagen(URL.createObjectURL(blob));
+      })
+      .catch(function () {
+        // Plan B: mostrar la imagen tal cual está en el servidor.
+        mostrarImagen(imageUrl + "?v=" + Date.now());
+      })
+      .then(function () {
+        imageReady = true;
+        btnImg.disabled = false;
+      });
   }
   function markAudioReady() {
     audioReady = true;
@@ -365,7 +431,7 @@
   function tick() {
     var elapsed = Date.now() - startedAt;
     var jobs = [];
-    if (!noImage && !imageReady) jobs.push(exists(imageUrl).then(function (ok) { if (ok) markImageReady(); }));
+    if (!noImage && !imageReady) jobs.push(exists(imageUrl).then(function (ok) { if (ok) return markImageReady(); }));
     if (!audioReady) jobs.push(exists(audioUrl).then(function (ok) { if (ok) markAudioReady(); }));
     Promise.all(jobs).then(function () {
       refreshCopy();
@@ -385,11 +451,11 @@
 
   // ---- Descargas ----
   // El atributo "download" se ignora entre dominios distintos, así que se baja como blob.
-  function download(url, filename, button, label) {
+  function download(url, filename, button, label, preBlob) {
     button.disabled = true;
     setStatus("Descargando…");
-    fetch(url, { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+    (preBlob ? Promise.resolve(preBlob) : fetch(url, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.blob(); }))
       .then(function (blob) {
         var a = document.createElement("a");
         var objUrl = URL.createObjectURL(blob);
@@ -411,7 +477,7 @@
 
   var base = fileSafe(name);
   btnImg.addEventListener("click", function () {
-    download(imageUrl, "avatar-" + base + ".png", btnImg, "La imagen");
+    download(imageUrl, "avatar-" + base + ".png", btnImg, "La imagen", correctedBlob);
   });
   btnAud.addEventListener("click", function () {
     download(audioUrl, "sonido-" + base + ".wav", btnAud, "El audio");
